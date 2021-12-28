@@ -2,7 +2,7 @@
  *
  * This file contains the platform specific functionality.
  *
- * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2021, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -128,6 +128,7 @@ typedef unsigned char __u8;
 #define ST_PARAM_KEY_KW_START_TOLERANCE "kw_start_tolerance"
 #define ST_PARAM_KEY_KW_END_TOLERANCE "kw_end_tolerance"
 #define ST_PARAM_KEY_EXECUTION_TYPE "execution_type"
+#define ST_PARAM_KEY_SECOND_STAGE_SUPPORTED "second_stage_supported"
 #define ST_PARAM_KEY_EVENT_TIMESTAMP_MODE "event_timestamp_mode"
 #define ST_PARAM_KEY_BACKEND_PORT_NAME "backend_port_name"
 #define ST_PARAM_KEY_BACKEND_DAI_NAME "backend_dai_name"
@@ -2658,6 +2659,21 @@ static int platform_stdev_set_sm_config_params
         }
     }
 
+    err = str_parms_get_str(parms, ST_PARAM_KEY_SECOND_STAGE_SUPPORTED,
+                            str_value, sizeof(str_value));
+    //By default set to true
+    sm_info->second_stage_supported = true;
+    if (err >= 0) {
+        str_parms_del(parms, ST_PARAM_KEY_SECOND_STAGE_SUPPORTED);
+        if (!strcmp(str_value, "true")) {
+           sm_info->second_stage_supported = true;
+        } else if (!strcmp(str_value, "false")) {
+           sm_info->second_stage_supported = false;
+        } else {
+            ALOGE("%s: invalid second stage support value set: %s", __func__, str_value);
+        }
+    }
+
     err = str_parms_get_str(parms, ST_PARAM_KEY_APP_TYPE,
                             str_value, sizeof(str_value));
     if (err >= 0) {
@@ -4596,6 +4612,17 @@ int platform_stdev_get_device
 )
 {
     return get_st_device(platform, v_info, device, exec_mode, false);
+}
+
+int platform_stdev_get_device_for_cal
+(
+    void *platform,
+    struct st_vendor_info* v_info,
+    audio_devices_t device,
+    enum st_exec_mode exec_mode
+)
+{
+    return get_st_device(platform, v_info, device, exec_mode, true);
 }
 
 audio_devices_t platform_stdev_get_capture_device
